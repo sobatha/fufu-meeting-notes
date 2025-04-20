@@ -1,0 +1,150 @@
+# 夫婦ミーティング支援 Web アプリケーション  
+## 要件定義書 (v0.3.1 – 詳細整理版)
+
+---
+### 1. 目的 / 背景
+1. 夫婦が **月 1 回** の定例ミーティングで健康・生活・仕事・出来事を振り返り、気持ちを共有し合うことで相互理解と家庭内ウェルビーイングを高める。  
+2. **初期コスト最小化** のため、下記スタックで最小実行可能プロダクト (MVP) を実装する。  
+   - フロント & 簡易 API: **Next.js 15** を **Cloudflare Workers** へ直接デプロイ (Pages 不使用)。  
+   - データ保存: **Google スプレッドシート** (Workbook 1 冊, 複数シート)。  
+   - AI 支援: **OpenAI GPT‑4o** (テキスト議事録要約) & **Whisper** (任意の音声→文字起こし)。
+
+---
+### 2. MVP スコープ
+| 含む (MVP) | 省く (後続フェーズ) |
+|---|---|
+| 振り返り項目 CRUD (10 件前後) | リレーショナル DB, Vector DB |
+| 月次ミーティング<br>• 個人10分 (非公開)<br>• 共有20分 (公開) | 半年サマリー自動生成 |
+| Google Sheets へのデータ保存 | 前月データを踏まえた AI 質問生成 |
+| 議事録草案生成 (GPT‑4o) | SSO, 多言語化, PWA オフライン |
+| PDF / Markdown エクスポート | iOS / Android ネイティブアプリ |
+
+---
+### 3. システム構成
+```
+Browser (SPA/SSR) ─▶ Cloudflare Worker (Next.js + Edge API Routes) ─▶ Google Sheets
+                                                     │
+                                                     └─▶ OpenAI GPT‑4o / Whisper
+```
+- **Next.js**: App Router, `output:"standalone"`。ビルド後に **OpenNext Cloudflare Adapter** で Worker スクリプト化。
+- **Cloudflare Worker**:
+  - Secrets: `OPENAI_API_KEY`, `GOOGLE_SA_JSON` (Service Account) を環境変数として登録。
+  - スクリプト gzip サイズ: 3 MiB 以内 (Free)／10 MiB (Paid)。
+- **デプロイ**: `wrangler deploy` 1 コマンドで UI+API 一体の Worker として公開。DNS は `meeting.example.com` など。
+
+---
+### 4. 詳細ユースケース
+| UC 番号 | 役割 | シナリオ | 主要ステップ |
+|---|---|---|---|
+| UC‑01 | 夫／妻 | 振り返り項目を追加・編集・削除したい | UI で CRUD → Worker → Sheet `items` 更新 |
+| UC‑02 | 夫／妻 | ミーティング日程を決めたい | ダッシュボードで日付選択 → Sheet `meetings` に行追加 |
+| UC‑03 | 夫／妻 | 個人振り返りを 10 分で記録したい | タイマー開始 → 質問プロンプト表示 (固定文) → 入力保存 (Sheet `personal_A/B`) |
+| UC‑04 | 夫／妻 | 共有フェーズで順番に発言・メモを残したい | タイマー / スピーカー表示 → 入力 or 録音 → Sheet `shared_notes` 保存 |
+| UC‑05 | システム | 議事録草案を自動生成したい | 共有ノートを GPT に送信 → Markdown 要約受信 → Sheet `minutes` 保存 |
+| UC‑06 | 夫／妻 | 議事録を PDF として保存したい | 草案編集 → `jsPDF` でクライアント生成 → DL |
+
+---
+### 5. データモデル (Google Sheets)
+| シート名 | 主キー列 | 列 (抜粋) | 行サンプル |
+|---|---|---|---|
+| `items` | id | title, order | 1, 健康, 1 |
+| `meetings` | id | scheduled_at (ISO), status(enum) | 5, 2025‑06‑10T21:00+09:00, scheduled |
+| `personal_A` / `personal_B` | meeting_id, item_id | content, ts | 5, 1, "最近体調良い", 2025‑06‑10T21:05 |
+| `shared_notes` | meeting_id, item_id, speaker | content, ts | 5, 1, A, "ジョギング再開", 21:15 |
+| `minutes` | meeting_id | markdown_body, pdf_url | 5,  ...  |
+
+> **API 最適化:** 書き込みは 1 フェーズにつき 1 バッチ (最大 500 cells) で抑え、Quota (100 req/100秒) 節約。
+
+---
+### 6. 画面 & プロセスフロー
+1. **Dashboard**: 次回ミーティング予定 / 最近の議事録一覧。  
+2. **Item Manager**: 項目 CRUD、ドラッグで並び替え。  
+3. **Meeting Workspace**: *Tabs* で **Personal** と **Shared** を切り替え。
+   - **Personal Tab**  
+     - 10 分カウントダウンタイマー (常時表示)。  
+     - 各振り返り項目ごとに Markdown テキストエリア。  
+     - 残り 1 分で背景が黄色 → 0 秒で赤。  
+   - **Shared Tab**  
+     - 「Record ⏺️」ボタン (MediaRecorder API) で音声録音開始。  
+     - 録音中は波形アニメ & 経過時間、Stop ⏹️ で保存。  
+     - 画面右にライブメモ入力欄 (Markdown)。  
+     - 次の項目に進むと自動でメモエリアがクリア。
+4. **Minutes Preview**: GPT 草案を Markdown で編集 → Export ボタン(PDF/MD)。
+
+---
+### 6‑A. UI コンポーネント詳細
+| 画面 | コンポーネント | ライブラリ / 実装 | 補足 |
+|---|---|---|---|
+| 共通 | Tabs | shadcn/ui `Tabs`  | キーボード ←→ で切替。([ui.shadcn.com](https://ui.shadcn.com/docs/components/tabs?utm_source=chatgpt.com)) |
+| Personal | CountdownTimer | React hook (setInterval) | freeCodeCamp ガイド参照。([freecodecamp.org](https://www.freecodecamp.org/news/build-a-countdown-timer-with-react-step-by-step/?utm_source=chatgpt.com)) |
+| Personal | ReflectionCard | `Textarea` + item title | 並び替えは Drag & Drop。 |
+| Shared | RecorderButton | `react-media-recorder` | MediaRecorder ラッパー。([codesandbox.io](https://codesandbox.io/examples/package/react-media-recorder?utm_source=chatgpt.com)) |
+| Shared | AudioRecorderCore | `MediaRecorder` API | ブラウザ互換性を確認。([developer.mozilla.org](https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder?utm_source=chatgpt.com), [caniuse.com](https://caniuse.com/mediarecorder?utm_source=chatgpt.com)) |
+| Shared | LiveWaveform | `canvas` / `wavesurfer.js` | 録音の臨場感。 |
+| 共通 | Confetti | Tailwind + canvas-confetti | ミーティング完了時に祝う。([preline.co](https://preline.co/docs/confetti.html?utm_source=chatgpt.com), [m.youtube.com](https://m.youtube.com/watch?v=I2Mcg1fAPU0&utm_source=chatgpt.com)) |
+
+---
+### 6‑B. UX ガイドライン
+- **タブは少数 (2 枚) & ラベルを動詞 + 名詞で統一** (例: "個人メモ" / "共有メモ")。([nngroup.com](https://www.nngroup.com/articles/tabs-used-right/?utm_source=chatgpt.com), [wired.com](https://www.wired.com/2008/08/get-your-tabbed-design-right?utm_source=chatgpt.com))  
+- アクティブタブと内容領域を視覚的に接続。
+- 録音中はタブ切替を禁止して誤操作を防止。
+
+---
+### 6‑C. 楽しくするアイデア
+1. **ムード絵文字ピッカー**: 各項目に "😊😐😟" をクリックで感情タグ付。後から変化を可視化。インティマシーアプリで使われる日次質問形式を参考にすることで、ゲーム感覚が高まる。([gq.com](https://www.gq.com/story/relationship-apps-gamify-intimacy?utm_source=chatgpt.com), [glamour.com](https://www.glamour.com/story/happy-couple-app?utm_source=chatgpt.com))  
+2. **ランダム愛情カード**: 個人タブ開始時に「相手に感謝していることを 1 つ書こう」などのアイスブレイクを表示。  
+3. **習慣スコアリング**: 前回決めたアクションの達成度バーを表示し、色で進捗を演出。Gamification で家事の不公平感を減らす例にならう。([forbes.com](https://www.forbes.com/sites/michaellahuck/2022/06/16/choreful-aims-to-quell-couple-fights-with-gamification/?utm_source=chatgpt.com))  
+4. **完了時の花火 / Confetti**: ミーティングを終えるとコンフェッティ + 「お疲れさま！」の音声。  
+5. **ライト / ダーク + カップルテーマカラー**: 2 色テーマをペアで投票して決定し、UI に反映。 機能要件
+1. Google OAuth2 (2 アカウント固定)。
+2. タイマーは Web Worker で実装し、タブ非アクティブでも精度確保。 
+3. AI エラー時は手動入力にフォールバック。 
+4. PDF 生成はクライアント (`jsPDF`)、日本語フォントは CDN 取得。 
+5. Sheet 行追加時に同一 meeting_id の重複を検知し防止。
+
+---
+### 8. 非機能要件
+| 区分 | 指標 / 制約 |
+|---|---|
+| レスポンス | P95 < 500 ms (30 ms 以内: Worker 処理; 200 ms: Sheets API) |
+| セキュリティ | TLS 1.3, Google OAuth ID Token 検証, Content Security Policy 厳格化 |
+| 可用性 | 99.5 % / 月 (Cloudflare Edge, Google Sheets SLA 99.9 %) |
+| 法令準拠 | 個人情報保護法 (日本), GDPR に準拠 |
+| メンテ | GitHub Actions → wrangler deploy (main ブランチ) |
+
+---
+### 9. 技術スタック
+| レイヤ | 採用技術 |
+|---|---|
+| フロント | Next.js 15 + React 19, shadcn/ui, Tailwind CSS |
+| サーバレス | Cloudflare Workers (nodejs_compat) |
+| データ | Google Sheets API v4 |
+| AI | OpenAI GPT‑4o, Whisper v3 |
+| DevOps | wrangler v3, GitHub Actions CI/CD |
+
+---
+### 10. 運用・監視
+- **Logging**: `console.log` → Cloudflare Logpush → Cloudflare R2 (retention 30 days)。
+- **Alerts**: Workers Analytics → Slack Webhook (エラー率 >1% / 5min)。
+- **Secret Rotation**: GitHub Actions + wrangler secret put (90 days cycle)。
+
+---
+### 11. MVP マイルストーン
+| フェーズ | 期間 | Deliverables |
+|---|---|---|
+| 要件確定 (v0.3.1) | 2025‑05‑05 | 本ドキュメント確定版 |
+| PoC (Worker+Sheets) | 2025‑05‑12 | CRUD & 認証まで動作確認 |
+| MVP 実装 | 2025‑06‑30 | 全主要フロー + GPT 草案生成 |
+| β テスト | 2025‑07‑15 | フィードバック一覧, バグ修正 |
+| リリース v1.0 | 2025‑08‑01 | 本番ドメイン公開 |
+
+---
+### 12. 将来拡張 (参考)
+- Vector DB を用いた質問生成 (過去議事録検索)。
+- 半年 / 年間サマリー自動グラフ化。 
+- PWA / モバイルアプリ化。 
+- マルチペア対応 (複数カップルの利用) とサブスク課金。
+
+---
+*最終更新: 2025‑04‑20 by ChatGPT (o3)*
+
