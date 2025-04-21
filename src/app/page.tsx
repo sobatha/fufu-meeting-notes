@@ -10,8 +10,6 @@ export default function MeetingWorkspacePage() {
   const [activeTab, setActiveTab] = useState('personal');
   const [timeLeft, setTimeLeft] = useState(600); // 10 minutes in seconds
   const [isTimerRunning, setIsTimerRunning] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
-  const [recordingTime, setRecordingTime] = useState(0);
   const [personalNotes, setPersonalNotes] = useState<
     Record<number, { mood: 'happy'|'neutral'|'sad'; note: string }>
   >({
@@ -33,26 +31,6 @@ export default function MeetingWorkspacePage() {
     { id: 3, title: '家庭生活' }
   ];
 
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isRecording) {
-      interval = setInterval(() => {
-        setRecordingTime(prevTime => prevTime + 1);
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [isRecording]);
-
-  const toggleRecording = () => {
-    if (isRecording) {
-      setIsRecording(false);
-      // Here you would typically save the recording
-    } else {
-      setIsRecording(true);
-      setRecordingTime(0);
-    }
-  };
-  
   const handleNextItem = () => {
     if (currentItemIndex < items.length) {
       setCurrentItemIndex(currentItemIndex + 1);
@@ -108,8 +86,8 @@ export default function MeetingWorkspacePage() {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <div className="flex justify-between items-center">
             <TabsList>
-              <TabsTrigger value="personal" disabled={isRecording}>個人メモ</TabsTrigger>
-              <TabsTrigger value="shared" disabled={isRecording}>共有メモ</TabsTrigger>
+              <TabsTrigger value="personal">個人メモ</TabsTrigger>
+              <TabsTrigger value="shared">共有メモ</TabsTrigger>
             </TabsList>
           </div>
           <TabsContent value="personal">
@@ -127,13 +105,9 @@ export default function MeetingWorkspacePage() {
               items={items}
               notes={sharedNotes}
               currentItemIndex={currentItemIndex}
-              isRecording={isRecording}
-              recordingTime={recordingTime}
               onNoteChange={handleSharedNoteChange}
               onPrev={handlePrevItem}
               onNext={handleNextItem}
-              onToggleRecording={toggleRecording}
-              onTimeChange={setRecordingTime}
               onComplete={handleCompleteSharedNotes}
             />
           </TabsContent>

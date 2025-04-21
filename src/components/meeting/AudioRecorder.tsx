@@ -1,29 +1,33 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Mic, StopCircle } from 'lucide-react';
 import { TimerDisplay } from '@/components/common/TimerDisplay';
 import { RecordingWaveform } from '@/components/common/RecordingWaveform';
+import { useUserRecorder } from '@/components/recording/useUserRecorder';
 
-export interface AudioRecorderProps {
-  isRecording: boolean;
-  recordingTime: number;
-  onToggleRecording: () => void;
-  onTimeChange: (seconds: number) => void;
-}
+export const AudioRecorder: React.FC = () => {
+  const { status, startRecording, stopRecording, mediaUrl, error } = useUserRecorder();
+  const isRecording = status === 'recording';
+  const [recordingTime, setRecordingTime] = useState<number>(0);
 
-export const AudioRecorder: React.FC<AudioRecorderProps> = ({
-  isRecording,
-  recordingTime,
-  onToggleRecording,
-  onTimeChange,
-}) => {
-  
-  // auto increment recordingTime handled in parent
+  useEffect(() => {
+    let interval: number;
+    if (isRecording) {
+      interval = window.setInterval(() => setRecordingTime(prev => prev + 1), 1000);
+    }
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [isRecording]);
+
   const handleToggle = () => {
-    onToggleRecording();
-    // reset time if starting
     if (!isRecording) {
-      onTimeChange(0);
+      setRecordingTime(0);
+      startRecording();
+    } else {
+      stopRecording();
     }
   };
 
@@ -59,6 +63,10 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
             </>
           )}
         </Button>
+        {mediaUrl && !isRecording && (
+          <audio controls src={mediaUrl} className="mt-4" />
+        )}
+        {error && <p className="text-red-500 mt-2">{error}</p>}
       </div>
     </div>
   );

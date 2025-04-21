@@ -9,13 +9,9 @@ export interface SharedNotesTabProps {
   items: { id: number; title: string }[];
   currentItemIndex: number;
   notes: Record<number, string>;
-  isRecording: boolean;
-  recordingTime: number;
   onPrev: () => void;
   onNext: () => void;
   onNoteChange: (itemId: number, value: string) => void;
-  onToggleRecording: () => void;
-  onTimeChange: (seconds: number) => void;
   onSave?: () => void;
   onComplete?: () => void;
 }
@@ -24,13 +20,9 @@ export const SharedNotesTab: React.FC<SharedNotesTabProps> = ({
   items,
   currentItemIndex,
   notes,
-  isRecording,
-  recordingTime,
   onPrev,
   onNext,
   onNoteChange,
-  onToggleRecording,
-  onTimeChange,
   onSave,
   onComplete,
 }) => (
@@ -39,10 +31,10 @@ export const SharedNotesTab: React.FC<SharedNotesTabProps> = ({
       <CardTitle className="text-xl flex justify-between items-center">
         <span>共有フェーズ: {items[currentItemIndex - 1].title}</span>
         <div className="flex space-x-2">
-          <Button variant="outline" size="sm" onClick={onPrev} disabled={currentItemIndex === 1 || isRecording}>
+          <Button variant="outline" size="sm" onClick={onPrev} disabled={currentItemIndex === 1}>
             前の項目
           </Button>
-          <Button variant="outline" size="sm" onClick={onNext} disabled={currentItemIndex === items.length || isRecording}>
+          <Button variant="outline" size="sm" onClick={onNext} disabled={currentItemIndex === items.length}>
             次の項目
           </Button>
         </div>
@@ -51,12 +43,7 @@ export const SharedNotesTab: React.FC<SharedNotesTabProps> = ({
     <CardContent>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-4">
-          <AudioRecorder
-            isRecording={isRecording}
-            recordingTime={recordingTime}
-            onToggleRecording={onToggleRecording}
-            onTimeChange={onTimeChange}
-          />
+          <AudioRecorder />
           <div className="text-center">
             <span className="text-sm text-gray-500 dark:text-gray-400">
               録音は自動でテキスト化されます
