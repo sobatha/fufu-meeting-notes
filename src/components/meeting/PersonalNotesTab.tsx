@@ -11,6 +11,7 @@ export interface PersonalNotesTabProps {
   onMoodChange?: (itemId: number, mood: 'happy' | 'neutral' | 'sad') => void;
   onNoteChange: (itemId: number, value: string) => void;
   onSave: () => void;
+  isPending: boolean;
 }
 
 export const PersonalNotesTab: React.FC<PersonalNotesTabProps> = ({
@@ -20,6 +21,7 @@ export const PersonalNotesTab: React.FC<PersonalNotesTabProps> = ({
   onMoodChange,
   onNoteChange,
   onSave,
+  isPending,
 }) => (
   <Card>
     <CardHeader className="pb-3">
@@ -51,7 +53,9 @@ export const PersonalNotesTab: React.FC<PersonalNotesTabProps> = ({
         ))}
       </div>
       <div className="mt-6 flex justify-end">
-        <Button onClick={onSave}>保存</Button>
+        <Button onClick={onSave} disabled={isPending}>
+          {isPending ? '保存中...' : '保存'}
+        </Button>
       </div>
     </CardContent>
   </Card>
