@@ -110,8 +110,8 @@ export default function MeetingWorkspacePage() {
           <TabsContent value="personal">
             <PersonalNotesTab
               items={items}
-              notes={items.map(item => personalNotes[item.id].note)}
-              moods={items.map(item => personalNotes[item.id].mood)}
+              notes={Object.fromEntries(items.map(item => [item.id, personalNotes[item.id].note]))}
+              moods={Object.fromEntries(items.map(item => [item.id, personalNotes[item.id].mood]))}
               onMoodChange={handleMoodChange}
               onNoteChange={handlePersonalNoteChange}
               onSave={() => startTransition(handleSavePersonalNotes)}
