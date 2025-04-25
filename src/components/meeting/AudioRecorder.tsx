@@ -9,6 +9,9 @@ export const AudioRecorder: React.FC = () => {
   const { status, startRecording, stopRecording, mediaUrl, error } = useUserRecorder();
   const isRecording = status === 'recording';
   const [recordingTime, setRecordingTime] = useState<number>(0);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [transcript, setTranscript] = useState<string>('');
+  const [transcriptionError, setTranscriptionError] = useState<string | null>(null);
 
   useEffect(() => {
     let interval: number;
@@ -21,6 +24,32 @@ export const AudioRecorder: React.FC = () => {
       }
     };
   }, [isRecording]);
+
+  useEffect(() => {
+    if (mediaUrl && !isRecording) {
+      (async () => {
+        setIsTranscribing(true);
+        setTranscript('');
+        setTranscriptionError(null);
+        try {
+          const blob = await fetch(mediaUrl).then(res => res.blob());
+          const formData = new FormData();
+          formData.append('file', blob, 'recording.webm');
+          const res = await fetch('/api/transcribe', { method: 'POST', body: formData });
+          const data = (await res.json()) as { transcript?: string; error?: string };
+          if (res.ok) {
+            setTranscript(data.transcript ?? '');
+          } else {
+            setTranscriptionError(data.error || 'Transcription failed');
+          }
+        } catch (err: any) {
+          setTranscriptionError(err.message);
+        } finally {
+          setIsTranscribing(false);
+        }
+      })();
+    }
+  }, [mediaUrl, isRecording]);
 
   const handleToggle = () => {
     if (!isRecording) {
@@ -66,6 +95,9 @@ export const AudioRecorder: React.FC = () => {
         {mediaUrl && !isRecording && (
           <audio controls src={mediaUrl} className="mt-4" />
         )}
+        {isTranscribing && <p className="mt-2">Transcribing...</p>}
+        {transcriptionError && <p className="text-red-500 mt-2">{transcriptionError}</p>}
+        {transcript && <p className="mt-4 whitespace-pre-wrap">{transcript}</p>}
         {error && <p className="text-red-500 mt-2">{error}</p>}
       </div>
     </div>
