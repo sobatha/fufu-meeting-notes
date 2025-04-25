@@ -37,7 +37,7 @@ export const AudioRecorder: React.FC = () => {
         {isRecording && (
           <RecordingWaveform
             isRecording={isRecording}
-            className="h-16 w-full"
+            className="h-16"
             barCount={20}
             barWidth={4}
             barSpacing={2}

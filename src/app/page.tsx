@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 import { MeetingHeader } from '@/components/meeting/MeetingHeader';
 import { PersonalNotesTab } from '@/components/meeting/PersonalNotesTab';
 import { SharedNotesTab } from '@/components/meeting/SharedNotesTab';
@@ -30,6 +30,8 @@ export default function MeetingWorkspacePage() {
     { id: 2, title: '仕事' },
     { id: 3, title: '家庭生活' }
   ];
+
+  const [isPending, startTransition] = useTransition();
 
   const handleNextItem = () => {
     if (currentItemIndex < items.length) {
@@ -64,8 +66,23 @@ export default function MeetingWorkspacePage() {
     }));
   };
 
-  const handleSavePersonalNotes = () => {
-    // Implement save logic for personal notes
+  const handleSavePersonalNotes = async () => {
+    try {
+      const response = await fetch('/api/save-personal-notes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notes: personalNotes }),
+      });
+      const { success, error } = (await response.json()) as { success: boolean; error?: string };
+      if (success) {
+        alert('Personal notes saved to Google Sheets!');
+      } else {
+        alert(`Failed to save notes: ${error}`);
+      }
+    } catch (error) {
+      console.error('Error saving personal notes', error);
+      alert('Error saving personal notes');
+    }
   };
 
   const handleCompleteSharedNotes = () => {
@@ -93,11 +110,12 @@ export default function MeetingWorkspacePage() {
           <TabsContent value="personal">
             <PersonalNotesTab
               items={items}
-              notes={items.map(item => personalNotes[item.id].note)}
-              moods={items.map(item => personalNotes[item.id].mood)}
+              notes={Object.fromEntries(items.map(item => [item.id, personalNotes[item.id].note]))}
+              moods={Object.fromEntries(items.map(item => [item.id, personalNotes[item.id].mood]))}
               onMoodChange={handleMoodChange}
               onNoteChange={handlePersonalNoteChange}
-              onSave={handleSavePersonalNotes}
+              onSave={() => startTransition(handleSavePersonalNotes)}
+              isPending={isPending}
             />
           </TabsContent>
           <TabsContent value="shared">
