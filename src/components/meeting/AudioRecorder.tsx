@@ -5,16 +5,14 @@ import { TimerDisplay } from '@/components/common/TimerDisplay';
 import { RecordingWaveform } from '@/components/common/RecordingWaveform';
 import { useUserRecorder } from '@/components/recording/useUserRecorder';
 import { useTranscription } from '@/components/recording/useTranscription';
+import { useSummarization } from '@/components/recording/useSummarization';
 
 export const AudioRecorder: React.FC = () => {
   const { status, startRecording, stopRecording, mediaUrl, error } = useUserRecorder();
   const isRecording = status === 'recording';
   const [recordingTime, setRecordingTime] = useState<number>(0);
   const { transcript, isTranscribing, transcriptionError } = useTranscription(mediaUrl);
-  const [isSummarizing, setIsSummarizing] = useState(false);
-  const [summary, setSummary] = useState('');
-  const [docUrl, setDocUrl] = useState('');
-  const [summaryError, setSummaryError] = useState<string | null>(null);
+  const { summary, docUrl, isSummarizing, summaryError, summarize } = useSummarization();
 
   useEffect(() => {
     let interval: number;
@@ -37,30 +35,9 @@ export const AudioRecorder: React.FC = () => {
     }
   };
 
-  const handleSummarize = async () => {
+  const handleSummarize = () => {
     if (!transcript) return;
-    setIsSummarizing(true);
-    setSummary('');
-    setDocUrl('');
-    setSummaryError(null);
-    try {
-      const res = await fetch('/api/summarize', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transcript })
-      });
-      const data = (await res.json()) as { summary?: string; docUrl?: string; error?: string };
-      if (res.ok) {
-        setSummary(data.summary ?? '');
-        setDocUrl(data.docUrl ?? '');
-      } else {
-        setSummaryError(data.error || 'Summarization failed');
-      }
-    } catch (err: any) {
-      setSummaryError(err.message);
-    } finally {
-      setIsSummarizing(false);
-    }
+    summarize(transcript);
   };
 
   return (
