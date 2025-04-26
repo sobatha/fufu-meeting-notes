@@ -11,6 +11,10 @@ export const AudioRecorder: React.FC = () => {
   const isRecording = status === 'recording';
   const [recordingTime, setRecordingTime] = useState<number>(0);
   const { transcript, isTranscribing, transcriptionError } = useTranscription(mediaUrl);
+  const [isSummarizing, setIsSummarizing] = useState(false);
+  const [summary, setSummary] = useState('');
+  const [docUrl, setDocUrl] = useState('');
+  const [summaryError, setSummaryError] = useState<string | null>(null);
 
   useEffect(() => {
     let interval: number;
@@ -30,6 +34,32 @@ export const AudioRecorder: React.FC = () => {
       startRecording();
     } else {
       stopRecording();
+    }
+  };
+
+  const handleSummarize = async () => {
+    if (!transcript) return;
+    setIsSummarizing(true);
+    setSummary('');
+    setDocUrl('');
+    setSummaryError(null);
+    try {
+      const res = await fetch('/api/summarize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transcript })
+      });
+      const data = (await res.json()) as { summary?: string; docUrl?: string; error?: string };
+      if (res.ok) {
+        setSummary(data.summary ?? '');
+        setDocUrl(data.docUrl ?? '');
+      } else {
+        setSummaryError(data.error || 'Summarization failed');
+      }
+    } catch (err: any) {
+      setSummaryError(err.message);
+    } finally {
+      setIsSummarizing(false);
     }
   };
 
@@ -72,6 +102,24 @@ export const AudioRecorder: React.FC = () => {
         {transcriptionError && <p className="text-red-500 mt-2">{transcriptionError}</p>}
         {transcript && <p className="mt-4 whitespace-pre-wrap">{transcript}</p>}
         {error && <p className="text-red-500 mt-2">{error}</p>}
+        {transcript && !summary && !isSummarizing && (
+          <Button onClick={handleSummarize} className="mt-4">
+            Generate Summary
+          </Button>
+        )}
+        {isSummarizing && <p className="mt-2">Generating summary...</p>}
+        {summaryError && <p className="text-red-500 mt-2">{summaryError}</p>}
+        {summary && (
+          <>
+            <h3 className="mt-4 text-lg font-semibold">Summary</h3>
+            <p className="whitespace-pre-wrap">{summary}</p>
+            {docUrl && (
+              <a href={docUrl} target="_blank" className="text-blue-500 underline mt-2 block">
+                Open in Google Docs
+              </a>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

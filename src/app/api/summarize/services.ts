@@ -45,7 +45,7 @@ export async function saveSummaryToGoogleDoc(summary: string): Promise<string> {
     await driveClient.files.update({
       fileId: docId,
       addParents: folderId,
-      removeParents: 'root',
+      supportsAllDrives: true,
       fields: 'id, parents'
     });
   }
