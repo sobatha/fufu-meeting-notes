@@ -4,11 +4,15 @@ import { Mic, StopCircle } from 'lucide-react';
 import { TimerDisplay } from '@/components/common/TimerDisplay';
 import { RecordingWaveform } from '@/components/common/RecordingWaveform';
 import { useUserRecorder } from '@/components/recording/useUserRecorder';
+import { useTranscription } from '@/components/recording/useTranscription';
+import { useSummarization } from '@/components/recording/useSummarization';
 
 export const AudioRecorder: React.FC = () => {
   const { status, startRecording, stopRecording, mediaUrl, error } = useUserRecorder();
   const isRecording = status === 'recording';
   const [recordingTime, setRecordingTime] = useState<number>(0);
+  const { transcript, isTranscribing, transcriptionError } = useTranscription(mediaUrl);
+  const { summary, docUrl, isSummarizing, summaryError, summarize } = useSummarization();
 
   useEffect(() => {
     let interval: number;
@@ -29,6 +33,11 @@ export const AudioRecorder: React.FC = () => {
     } else {
       stopRecording();
     }
+  };
+
+  const handleSummarize = () => {
+    if (!transcript) return;
+    summarize(transcript);
   };
 
   return (
@@ -66,7 +75,28 @@ export const AudioRecorder: React.FC = () => {
         {mediaUrl && !isRecording && (
           <audio controls src={mediaUrl} className="mt-4" />
         )}
+        {isTranscribing && <p className="mt-2">Transcribing...</p>}
+        {transcriptionError && <p className="text-red-500 mt-2">{transcriptionError}</p>}
+        {transcript && <p className="mt-4 whitespace-pre-wrap">{transcript}</p>}
         {error && <p className="text-red-500 mt-2">{error}</p>}
+        {transcript && !summary && !isSummarizing && (
+          <Button onClick={handleSummarize} className="mt-4">
+            Generate Summary
+          </Button>
+        )}
+        {isSummarizing && <p className="mt-2">Generating summary...</p>}
+        {summaryError && <p className="text-red-500 mt-2">{summaryError}</p>}
+        {summary && (
+          <>
+            <h3 className="mt-4 text-lg font-semibold">Summary</h3>
+            <p className="whitespace-pre-wrap">{summary}</p>
+            {docUrl && (
+              <a href={docUrl} target="_blank" className="text-blue-500 underline mt-2 block">
+                Open in Google Docs
+              </a>
+            )}
+          </>
+        )}
       </div>
     </div>
   );
