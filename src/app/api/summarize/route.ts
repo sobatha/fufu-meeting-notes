@@ -18,8 +18,8 @@ export async function POST(req: NextRequest) {
     const docUrl = await saveSummaryToGoogleDoc(summary);
 
     return NextResponse.json({ summary, docUrl });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Summary error', err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 }

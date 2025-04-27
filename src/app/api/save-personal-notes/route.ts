@@ -1,7 +1,6 @@
 export const runtime = 'nodejs';
 
 import { NextResponse } from 'next/server';
-// @ts-ignore: googleapis has no type declarations
 import { google } from 'googleapis';
 
 interface NotesBody {
@@ -45,8 +44,8 @@ export async function POST(req: Request) {
       },
     });
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error appending to sheet', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
 }

@@ -1,11 +1,14 @@
 import React from 'react';
+import dynamic from 'next/dynamic';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AudioRecorder } from './AudioRecorder';
+const AudioRecorder = dynamic(() => import('./AudioRecorder').then(mod => mod.AudioRecorder), { ssr: false });
 
-export interface SharedNotesTabProps {}
+export interface SharedNotesTabProps {
+  className?: string;
+}
 
-export const SharedNotesTab: React.FC<SharedNotesTabProps> = ({}) => (
-  <Card>
+export const SharedNotesTab: React.FC<SharedNotesTabProps> = ({ className }) => (
+  <Card className={className}>
     <CardHeader className="pb-3">
       <CardTitle className="text-xl flex justify-between items-center">
         <div className="flex space-x-2">

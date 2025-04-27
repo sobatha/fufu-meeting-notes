@@ -29,8 +29,8 @@ export function useSummarization() {
       } else {
         setSummaryError(data.error ?? 'Summarization failed');
       }
-    } catch (err: any) {
-      setSummaryError(err.message);
+    } catch (err: unknown) {
+      setSummaryError(err instanceof Error ? err.message : String(err));
     } finally {
       setIsSummarizing(false);
     }

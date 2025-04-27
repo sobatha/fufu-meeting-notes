@@ -8,10 +8,11 @@ import type { NextRequest } from 'next/server';
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
-    const file = formData.get('file') as File;
-    if (!file) {
+    const fileEntry = formData.get('file');
+    if (!fileEntry || typeof fileEntry === 'string') {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
+    const file = fileEntry;
 
     // Initialize OpenAI client
     const openai = new OpenAI({
@@ -20,17 +21,17 @@ export async function POST(req: NextRequest) {
 
     // Send to Whisper
     const transcription = await openai.audio.transcriptions.create({
-      file: file as any,
+      file: file,
       model: 'whisper-1',
       response_format: 'text'
     });
 
     // Extract text and return
-    const transcriptionData = transcription as any;
+    const transcriptionData = transcription as { text?: string };
     const transcript = transcriptionData.text ?? transcriptionData;
     return NextResponse.json({ transcript });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('Transcription error', err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 }

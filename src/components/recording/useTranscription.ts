@@ -29,8 +29,8 @@ export function useTranscription(mediaUrl: string | null) {
           } else {
             setTranscriptionError(data.error ?? 'Transcription failed');
           }
-        } catch (err: any) {
-          setTranscriptionError(err.message);
+        } catch (err: unknown) {
+          setTranscriptionError(err instanceof Error ? err.message : String(err));
         } finally {
           setIsTranscribing(false);
         }
