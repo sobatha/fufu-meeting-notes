@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Clock } from 'lucide-react';
 import { TimerDisplay } from '@/components/common/TimerDisplay';
+import { LogOutButton } from '@/components/auth/LogOutButton';
 
 export interface MeetingHeaderProps {
   title: string;
@@ -14,10 +15,6 @@ export interface MeetingHeaderProps {
 
 export const MeetingHeader: React.FC<MeetingHeaderProps> = ({
   title,
-  seconds,
-  isTimerRunning,
-  onToggleTimer,
-  onTimeChange,
   onBack,
 }) => (
   <header className="bg-white dark:bg-gray-800 shadow-sm">
@@ -26,21 +23,11 @@ export const MeetingHeader: React.FC<MeetingHeaderProps> = ({
         <Button variant="ghost" size="sm" className="mr-2" onClick={onBack}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <h1 className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+        <h1 className="text-2xl font-bold">
           {title}
         </h1>
       </div>
-      <div className="flex items-center bg-indigo-50 dark:bg-indigo-900/30 px-4 py-2 rounded-lg">
-        <Clock className="h-5 w-5 mr-2 text-indigo-500" />
-        <TimerDisplay
-          seconds={seconds}
-          warningThreshold={60}
-          dangerThreshold={0}
-          isPaused={!isTimerRunning}
-          onTogglePause={onToggleTimer}
-          onTimeChange={onTimeChange}
-        />
-      </div>
+      <LogOutButton />
     </div>
   </header>
 );

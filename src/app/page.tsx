@@ -5,6 +5,9 @@ import { MeetingHeader } from '@/components/meeting/MeetingHeader';
 import { PersonalNotesTab } from '@/components/meeting/PersonalNotesTab';
 import { SharedNotesTab } from '@/components/meeting/SharedNotesTab';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AuthGuard } from '@/components/auth/AuthGuard';
+import { TimerDisplay } from '@/components/common/TimerDisplay';
+import { Clock } from 'lucide-react';
 
 export default function MeetingWorkspacePage() {
   const [activeTab, setActiveTab] = useState('personal');
@@ -20,6 +23,7 @@ export default function MeetingWorkspacePage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <AuthGuard>
       <MeetingHeader
         title="2025年6月ミーティング"
         seconds={timeLeft}
@@ -35,6 +39,17 @@ export default function MeetingWorkspacePage() {
               <TabsTrigger value="personal">個人メモ</TabsTrigger>
               <TabsTrigger value="shared">共有メモ</TabsTrigger>
             </TabsList>
+            <div className="flex items-center bg-card px-4 py-2 rounded-lg">
+        <Clock className="h-5 w-5 mr-2 accent-foreground" />
+        <TimerDisplay
+          seconds={timeLeft}
+          warningThreshold={60}
+          dangerThreshold={0}
+          isPaused={!isTimerRunning}
+          onTogglePause={() => setIsTimerRunning(prev => !prev)}
+          onTimeChange={setTimeLeft}
+        />
+      </div>
           </div>
           <TabsContent value="personal">
             <PersonalNotesTab
@@ -46,6 +61,7 @@ export default function MeetingWorkspacePage() {
           </TabsContent>
         </Tabs>
       </main>
+      </AuthGuard>
     </div>
   );
 }

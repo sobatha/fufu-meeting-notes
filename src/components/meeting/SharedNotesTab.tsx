@@ -12,11 +12,12 @@ export const SharedNotesTab: React.FC<SharedNotesTabProps> = ({ className }) => 
     <CardHeader className="pb-3">
       <CardTitle className="text-xl flex justify-between items-center">
         <div className="flex space-x-2">
+          <h2 className="font-medium text-lg">音声記録</h2>
         </div>
       </CardTitle>
     </CardHeader>
     <CardContent>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6">
         <div className="space-y-4">
           <AudioRecorder />
         </div>
