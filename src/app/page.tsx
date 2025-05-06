@@ -5,6 +5,8 @@ import { MeetingHeader } from '@/components/meeting/MeetingHeader';
 import { PersonalNotesTab } from '@/components/meeting/PersonalNotesTab';
 import { SharedNotesTab } from '@/components/meeting/SharedNotesTab';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAuth } from '@/app/AuthContext';
+import { Button } from '@/components/ui/button';
 
 export default function MeetingWorkspacePage() {
   const [activeTab, setActiveTab] = useState('personal');
@@ -18,6 +20,8 @@ export default function MeetingWorkspacePage() {
     { id: 3, title: '家庭生活' }
   ];
 
+  const { signInWithGoogle } = useAuth();
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <MeetingHeader
@@ -29,6 +33,9 @@ export default function MeetingWorkspacePage() {
       />
       
       <main className="container mx-auto px-4 py-8">
+      <>
+          <Button onClick={() => signInWithGoogle()}>Sign in with Google</Button>
+        </>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <div className="flex justify-between items-center">
             <TabsList>
