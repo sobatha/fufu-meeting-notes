@@ -27,9 +27,9 @@ export const TimerDisplay: React.FC<TimerDisplayProps> = ({
   seconds,
   warningThreshold = 60,
   dangerThreshold = 30,
-  normalClassName = 'text-black dark:text-white',
-  warningClassName = 'text-yellow-500 dark:text-yellow-400',
-  dangerClassName = 'text-red-500 dark:text-red-400',
+  normalClassName = 'text-secondary-foreground',
+  warningClassName = 'text-accent-foreground',
+  dangerClassName = 'text-destructive-foreground',
   isPaused = false,
   onTogglePause,
   onTimeChange,
@@ -93,10 +93,10 @@ export const TimerDisplay: React.FC<TimerDisplayProps> = ({
         <Button
           size="sm"
           variant="outline"
-          className={`${isPaused ? 'text-green-500 hover:text-green-600' : 'text-red-500 hover:text-red-600'}`}
+          className="hover:bg-secondary"
           onClick={onTogglePause}
         >
-          {isPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
+          {isPaused ? <Play className="h-4 w-4 text-accent" /> : <Pause className="h-4 w-4 text-destructive" />}
         </Button>
       )}
     </div>

@@ -39,8 +39,8 @@ export default function MeetingWorkspacePage() {
               <TabsTrigger value="personal">個人メモ</TabsTrigger>
               <TabsTrigger value="shared">共有メモ</TabsTrigger>
             </TabsList>
-            <div className="flex items-center bg-indigo-50 dark:bg-indigo-900/30 px-4 py-2 rounded-lg">
-        <Clock className="h-5 w-5 mr-2 text-indigo-500" />
+            <div className="flex items-center bg-card px-4 py-2 rounded-lg">
+        <Clock className="h-5 w-5 mr-2 accent-foreground" />
         <TimerDisplay
           seconds={timeLeft}
           warningThreshold={60}

@@ -78,7 +78,7 @@ export function PersonalNotesTab({
             </div>
             <Textarea
               placeholder={`${item.title}についての振り返りを書いてください...`}
-              className="min-h-32"
+              className="min-h-32 bg-white"
               value={personalNotes[item.id].note}
               onChange={(e) => handlePersonalNoteChange(item.id, e.target.value)}
             />
