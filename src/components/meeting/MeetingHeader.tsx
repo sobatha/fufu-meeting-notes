@@ -15,10 +15,6 @@ export interface MeetingHeaderProps {
 
 export const MeetingHeader: React.FC<MeetingHeaderProps> = ({
   title,
-  seconds,
-  isTimerRunning,
-  onToggleTimer,
-  onTimeChange,
   onBack,
 }) => (
   <header className="bg-white dark:bg-gray-800 shadow-sm">
@@ -27,7 +23,7 @@ export const MeetingHeader: React.FC<MeetingHeaderProps> = ({
         <Button variant="ghost" size="sm" className="mr-2" onClick={onBack}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <h1 className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
+        <h1 className="text-2xl font-bold">
           {title}
         </h1>
       </div>
