@@ -4,18 +4,23 @@ import { NextResponse } from 'next/server';
 import { google } from 'googleapis';
 
 interface NotesBody {
+  userId: string;
   notes: Record<number, { mood: string; note: string }>;
 }
 
 // Load Google Sheets credentials from environment
-const sheetId = process.env.GOOGLE_SHEET_ID!;
+const husbandSheetId = process.env.PERSONAL_SHEET_ID_HUSBAND!;
+const wifeSheetId = process.env.PERSONAL_SHEET_ID_WIFE!;
 const clientEmail = process.env.GOOGLE_CLIENT_EMAIL!;
 const privateKey = process.env.GOOGLE_PRIVATE_KEY!.replace(/\\n/g, '\n');
 
+const getSheetId = (userId: string) =>
+  userId.startsWith('n') ? wifeSheetId : husbandSheetId;
 
 export async function POST(req: Request) {
   try {
-    const { notes } = (await req.json()) as NotesBody;
+    const { userId, notes } = (await req.json()) as NotesBody;
+    const sheetId = getSheetId(userId);
     const auth = new google.auth.JWT(
       clientEmail,
       undefined,

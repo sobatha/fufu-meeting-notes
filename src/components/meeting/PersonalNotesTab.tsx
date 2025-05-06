@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { MoodEmojiPicker } from '@/components/common/MoodEmojiPicker';
+import { useAuth } from '@/app/AuthContext';
 
 export interface PersonalNotesTabProps {
   items: { id: number; title: string }[];
@@ -20,6 +21,8 @@ export function PersonalNotesTab({
     2: { mood: 'neutral', note: '' },
     3: { mood: 'neutral', note: '' },
   });
+
+  const userId = useAuth().user?.email;
 
   const handleMoodChange = (itemId: number, mood: 'happy' | 'neutral' | 'sad') => {
     setPersonalNotes(prev => ({
@@ -41,7 +44,7 @@ export function PersonalNotesTab({
       const response = await fetch('/api/save-personal-notes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ notes: personalNotes }),
+        body: JSON.stringify({ notes: personalNotes, userId }),
       });
       const { success, error } = (await response.json()) as { success: boolean; error?: string };
       if (success) {

@@ -26,10 +26,6 @@ export default function MeetingWorkspacePage() {
       <AuthGuard>
       <MeetingHeader
         title="2025年6月ミーティング"
-        seconds={timeLeft}
-        isTimerRunning={isTimerRunning}
-        onToggleTimer={() => setIsTimerRunning(prev => !prev)}
-        onTimeChange={setTimeLeft}
       />
       
       <main className="container mx-auto px-4 py-8">
