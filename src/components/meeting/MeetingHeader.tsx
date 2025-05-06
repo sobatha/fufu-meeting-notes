@@ -1,15 +1,10 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Clock } from 'lucide-react';
-import { TimerDisplay } from '@/components/common/TimerDisplay';
 import { LogOutButton } from '@/components/auth/LogOutButton';
 
 export interface MeetingHeaderProps {
   title: string;
-  seconds: number;
-  isTimerRunning: boolean;
-  onToggleTimer: () => void;
-  onTimeChange: (seconds: number) => void;
   onBack?: () => void;
 }
 
