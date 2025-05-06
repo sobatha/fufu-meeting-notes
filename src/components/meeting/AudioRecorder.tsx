@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Mic, StopCircle } from 'lucide-react';
-import { TimerDisplay } from '@/components/common/TimerDisplay';
-import { RecordingWaveform } from '@/components/common/RecordingWaveform';
+import dynamic from 'next/dynamic';
+const Button = dynamic(() => import('@/components/ui/button').then(mod => ({ default: mod.Button })), { ssr: false });
+const MicIcon = dynamic(() => import('lucide-react').then(mod => ({ default: mod.Mic })), { ssr: false });
+const StopCircleIcon = dynamic(() => import('lucide-react').then(mod => ({ default: mod.StopCircle })), { ssr: false });
+const TimerDisplay = dynamic(() => import('@/components/common/TimerDisplay').then(mod => ({ default: mod.TimerDisplay })), { ssr: false });
+const RecordingWaveform = dynamic(() => import('@/components/common/RecordingWaveform').then(mod => ({ default: mod.RecordingWaveform })), { ssr: false });
 import { useUserRecorder } from '@/components/recording/useUserRecorder';
 import { useTranscription } from '@/components/recording/useTranscription';
 import { useSummarization } from '@/components/recording/useSummarization';
@@ -62,12 +64,12 @@ export const AudioRecorder: React.FC = () => {
         >
           {isRecording ? (
             <>
-              <StopCircle className="mr-2 h-5 w-5" />
+              <StopCircleIcon className="mr-2 h-5 w-5" />
               Stop Recording
             </>
           ) : (
             <>
-              <Mic className="mr-2 h-5 w-5" />
+              <MicIcon className="mr-2 h-5 w-5" />
               Start Recording
             </>
           )}

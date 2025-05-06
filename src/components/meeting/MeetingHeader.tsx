@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Clock } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { LogOutButton } from '@/components/auth/LogOutButton';
 
 export interface MeetingHeaderProps {
