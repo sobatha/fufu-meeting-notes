@@ -4,11 +4,11 @@
 	"private": true,
 	"scripts": {
 		"dev": "next dev",
-		"build": "next build",
+		"build": "opennextjs-vercel build",
 		"start": "next start",
 		"lint": "next lint",
-		"deploy": "vercel --prod",
-		"preview": "vercel dev"
+		"deploy": "opennextjs-vercel build && opennextjs-vercel deploy",
+		"preview": "opennextjs-vercel build && opennextjs-vercel preview"
 	},
 	"dependencies": {
 		"@mui/material": "^7.0.2",
@@ -34,7 +34,6 @@
 	},
 	"devDependencies": {
 		"@eslint/eslintrc": "^3",
-		"@opennextjs/vercel": "~1.0.0-beta.0 || ^1.0.0",
 		"@types/jest": "^29.5.14",
 		"@types/node": "^20",
 		"@types/react": "^19",
