@@ -4,11 +4,9 @@
 	"private": true,
 	"scripts": {
 		"dev": "next dev",
-		"build": "opennextjs-vercel build",
+		"build": "next build",
 		"start": "next start",
-		"lint": "next lint",
-		"deploy": "opennextjs-vercel build && opennextjs-vercel deploy",
-		"preview": "opennextjs-vercel build && opennextjs-vercel preview"
+		"lint": "next lint"
 	},
 	"dependencies": {
 		"@mui/material": "^7.0.2",
