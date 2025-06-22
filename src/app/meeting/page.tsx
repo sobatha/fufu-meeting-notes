@@ -8,8 +8,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AuthGuard } from '@/components/auth/AuthGuard';
 import { TimerDisplay } from '@/components/common/TimerDisplay';
 import { Clock } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function MeetingWorkspacePage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState('personal');
   const [timeLeft, setTimeLeft] = useState(600); // 10 minutes in seconds
   const [isTimerRunning, setIsTimerRunning] = useState(false);
@@ -26,6 +28,7 @@ export default function MeetingWorkspacePage() {
       <AuthGuard>
       <MeetingHeader
         title="2025年6月ミーティング"
+        onBack={() => router.push('/management')}
       />
       
       <main className="container mx-auto px-4 py-8">
