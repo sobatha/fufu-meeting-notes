@@ -5,9 +5,9 @@ import { Button } from '@/components/ui/button';
 import { PencilRuler, Edit, Plus } from 'lucide-react';
 
 interface ItemsManagerProps {
-  items: { id: number; title: string }[];
+  items: { id: string; name: string }[];
   onAdd?: () => void;
-  onEdit?: (id: number) => void;
+  onEdit?: (id: string) => void;
 }
 
 export function ItemsManager({ items, onAdd, onEdit }: ItemsManagerProps) {
@@ -26,7 +26,7 @@ export function ItemsManager({ items, onAdd, onEdit }: ItemsManagerProps) {
         <div className="space-y-4">
           {items.map(item => (
             <div key={item.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-              <span>{item.title}</span>
+              <span>{item.name}</span>
               <Button variant="ghost" size="sm" onClick={() => onEdit?.(item.id)}>
                 <Edit className="h-4 w-4" />
               </Button>

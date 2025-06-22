@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MeetingHeader } from '@/components/meeting/MeetingHeader';
 import { PersonalNotesTab } from '@/components/meeting/PersonalNotesTab';
 import { SharedNotesTab } from '@/components/meeting/SharedNotesTab';
@@ -10,6 +10,11 @@ import { TimerDisplay } from '@/components/common/TimerDisplay';
 import { Clock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
+interface DiscussionItem {
+  id: string;
+  name: string;
+}
+
 export default function MeetingWorkspacePage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('personal');
@@ -17,11 +22,29 @@ export default function MeetingWorkspacePage() {
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   
 
-  const items = [
-    { id: 1, title: '健康' },
-    { id: 2, title: '仕事' },
-    { id: 3, title: '家庭生活' }
-  ];
+  const [items, setItems] = useState<DiscussionItem[]>([]);
+  
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        const res = await fetch('/api/discussion-items');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success) {
+            setItems(data.items);
+          } else {
+            console.error('Failed to fetch items:', data.error);
+          }
+        } else {
+          console.error('Failed to fetch items: ', res.statusText);
+        }
+      } catch (error) {
+        console.error('Error fetching items:', error);
+      }
+    };
+
+    fetchItems();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">

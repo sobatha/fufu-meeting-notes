@@ -5,7 +5,7 @@ import { google } from 'googleapis';
 
 interface NotesBody {
   userId: string;
-  notes: Record<number, { mood: string; note: string }>;
+  notes: Record<string, { mood: string; note: string }>;
 }
 
 // Load Google Sheets credentials from environment
@@ -31,18 +31,13 @@ export async function POST(req: Request) {
     const values = [
       [
         new Date().toISOString(),
-        notes[1].mood,
-        notes[1].note,
-        notes[2].mood,
-        notes[2].note,
-        notes[3].mood,
-        notes[3].note,
+        ...Object.values(notes).flatMap(note => [note.mood, note.note]),
       ],
     ];
     await sheets.spreadsheets.values.append({
       spreadsheetId: sheetId,
       valueInputOption: 'RAW',
-      range: 'A:G',
+      range: 'A:AA',
       insertDataOption: 'INSERT_ROWS',
       requestBody: { 
         values 

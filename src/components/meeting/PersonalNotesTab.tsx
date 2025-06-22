@@ -1,4 +1,4 @@
-import React, { useState, useTransition } from 'react';
+import React, { useState, useTransition, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -6,8 +6,8 @@ import { MoodEmojiPicker } from '@/components/common/MoodEmojiPicker';
 import { useAuth } from '@/app/AuthContext';
 
 export interface PersonalNotesTabProps {
-  items: { id: number; title: string }[];
-  moods?: Record<number, 'happy' | 'neutral' | 'sad'>;
+  items: { id: string; name: string }[];
+  moods?: Record<string, 'happy' | 'neutral' | 'sad'>;
 }
 
 export function PersonalNotesTab({
@@ -15,26 +15,31 @@ export function PersonalNotesTab({
   moods = {},
 }: PersonalNotesTabProps) {
   const [personalNotes, setPersonalNotes] = useState<
-    Record<number, { mood: 'happy'|'neutral'|'sad'; note: string }>
-  >({
-    1: { mood: 'neutral', note: '' },
-    2: { mood: 'neutral', note: '' },
-    3: { mood: 'neutral', note: '' },
-  });
+    Record<string, { mood: 'happy'|'neutral'|'sad'; note: string }>
+  >({});
+
+  useEffect(() => {
+    setPersonalNotes(
+      items.reduce((acc, item) => {
+        acc[item.id] = { mood: 'neutral', note: '' };
+        return acc;
+      }, {} as Record<string, { mood: 'happy'|'neutral'|'sad'; note: string }>)
+    );
+  }, [items]);
 
   const userId = useAuth().user?.email;
 
-  const handleMoodChange = (itemId: number, mood: 'happy' | 'neutral' | 'sad') => {
+  const handleMoodChange = (itemId: string, mood: 'happy' | 'neutral' | 'sad') => {
     setPersonalNotes(prev => ({
       ...prev,
-      [itemId]: { mood, note: prev[itemId].note }
+      [itemId]: { mood, note: prev[itemId]?.note || '' }
     }));
   };
   
-  const handlePersonalNoteChange = (itemId: number, value: string) => {
+  const handlePersonalNoteChange = (itemId: string, value: string) => {
     setPersonalNotes(prev => ({
       ...prev,
-      [itemId]: { mood: prev[itemId].mood, note: value }
+      [itemId]: { mood: prev[itemId]?.mood || 'neutral', note: value }
     }));
   };
 
@@ -71,7 +76,7 @@ export function PersonalNotesTab({
         {items.map((item) => (
           <div key={item.id} className="space-y-2">
             <div className="flex justify-between items-center">
-              <h3 className="font-medium text-lg">{item.title}</h3>
+              <h3 className="font-medium text-lg">{item.name}</h3>
               {moods && (
                 <MoodEmojiPicker
                   initialMood={moods[item.id]}
@@ -80,9 +85,9 @@ export function PersonalNotesTab({
               )}
             </div>
             <Textarea
-              placeholder={`${item.title}についての振り返りを書いてください...`}
+              placeholder={`${item.name}についての振り返りを書いてください...`}
               className="min-h-32 bg-white"
-              value={personalNotes[item.id].note}
+              value={personalNotes[item.id]?.note || ''}
               onChange={(e) => handlePersonalNoteChange(item.id, e.target.value)}
             />
           </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AuthGuard } from '@/components/auth/AuthGuard';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,9 +10,37 @@ import { useRouter } from 'next/navigation';
 import { MinutesHistory } from '@/components/management/MinutesHistory';
 import { ItemsManager } from '@/components/management/ItemsManager';
 
+interface DiscussionItem {
+  id: string;
+  name: string;
+}
+
 export default function Dashboard() {
   const router = useRouter();
   const [isMeetingLoading, setIsMeetingLoading] = useState(false);
+  const [items, setItems] = useState<DiscussionItem[]>([]);
+
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        const res = await fetch('/api/discussion-items');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success) {
+            setItems(data.items);
+          } else {
+            console.error('Failed to fetch items:', data.error);
+          }
+        } else {
+          console.error('Failed to fetch items: ', res.statusText);
+        }
+      } catch (error) {
+        console.error('Error fetching items:', error);
+      }
+    };
+
+    fetchItems();
+  }, []);
 
   return (
     <AuthGuard>
@@ -36,7 +64,7 @@ export default function Dashboard() {
                 </div> 
               </CardContent>
             </Card>
-            <ItemsManager items={[]} onAdd={() => {}} onEdit={() => {}} />
+            <ItemsManager items={items} onAdd={() => {}} onEdit={() => {}} />
             <MinutesHistory minutes={[]} onView={() => {}} onPDF={() => {}} onViewAll={() => {}} />
           </div>
         </main>
