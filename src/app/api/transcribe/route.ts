@@ -1,7 +1,7 @@
 export const runtime = 'nodejs';
 
 import { NextResponse } from 'next/server';
-import OpenAI from 'openai';
+import OpenAI, { toFile } from 'openai';
 import type { NextRequest } from 'next/server';
 
 // POST /api/transcribe
@@ -12,16 +12,20 @@ export async function POST(req: NextRequest) {
     if (!fileEntry || typeof fileEntry === 'string') {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
-    const file = fileEntry;
+    const file = fileEntry as File;
 
     // Initialize OpenAI client
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY
     });
 
+    const buffer = Buffer.from(await file.arrayBuffer());
+    // Use toFile helper from openai to prevent Node.js native File quirks
+    const pristineFile = await toFile(buffer, file.name || 'audio.webm', { type: file.type || 'audio/webm' });
+
     // Send to Whisper
     const transcription = await openai.audio.transcriptions.create({
-      file: file,
+      file: pristineFile,
       model: 'whisper-1',
       response_format: 'text'
     });

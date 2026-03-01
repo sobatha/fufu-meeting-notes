@@ -10,26 +10,25 @@ import { useTranscription } from '@/components/recording/useTranscription';
 import { useSummarization } from '@/components/recording/useSummarization';
 
 export const AudioRecorder: React.FC = () => {
-  const { status, startRecording, stopRecording, mediaUrl, error } = useUserRecorder();
+  const { status, startRecording, stopRecording, mediaUrl, error, newChunk } = useUserRecorder();
   const isRecording = status === 'recording';
   const [recordingTime, setRecordingTime] = useState<number>(0);
-  const { transcript, isTranscribing, transcriptionError } = useTranscription(mediaUrl);
+  const { transcript, isTranscribing, transcriptionError, resetTranscript } = useTranscription(newChunk, isRecording);
   const { summary, docUrl, isSummarizing, summaryError, summarize } = useSummarization();
 
   useEffect(() => {
-    let interval: number;
+    let interval: number | undefined;
     if (isRecording) {
       interval = window.setInterval(() => setRecordingTime(prev => prev + 1), 1000);
+    } else {
+      clearInterval(interval);
     }
-    return () => {
-      if (interval) {
-        clearInterval(interval);
-      }
-    };
+    return () => clearInterval(interval);
   }, [isRecording]);
 
   const handleToggle = () => {
     if (!isRecording) {
+      resetTranscript();
       setRecordingTime(0);
       startRecording();
     } else {
