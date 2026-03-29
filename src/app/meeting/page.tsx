@@ -73,12 +73,12 @@ export default function MeetingWorkspacePage() {
                 />
               </div>
             </div>
-            <TabsContent value="personal">
+            <TabsContent value="personal" forceMount className="data-[state=inactive]:hidden">
               <PersonalNotesTab
                 items={items}
               />
             </TabsContent>
-            <TabsContent value="shared">
+            <TabsContent value="shared" forceMount className="data-[state=inactive]:hidden">
               <SharedNotesTab />
             </TabsContent>
           </Tabs>
