@@ -2,15 +2,18 @@ import OpenAI from 'openai';
 import { google } from 'googleapis';
 
 /**
- * Generates a summary for a meeting transcript using OpenAI GPT-4.
+ * Generates a summary for a meeting transcript using DeepInfra google/gemma-4-31B-it.
  */
 export async function summarizeTranscript(transcript: string): Promise<string> {
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
+  const openai = new OpenAI({
+    apiKey: process.env.DEEPINFRA_API_KEY!,
+    baseURL: 'https://api.deepinfra.com/v1/openai'
+  });
   const completion = await openai.chat.completions.create({
-    model: 'gpt-4',
+    model: 'google/gemma-4-31B-it',
     messages: [
       { role: 'system', content: '詳しく要約を作成してください。' },
-      { role: 'user', content: `以下の会議の内容を要約してください。夫婦2人の月次のミーティングです。項目ごとに二人の発言それぞれのまとめを作成し、会議全体のまとめも最後に作成するようにしてください。:\n\n${transcript}` }
+      { role: 'user', content: `以下の会議の内容を要約してください。夫婦2人の月次のミーティングの録音の文字起こしです。項目ごとに二人の発言それぞれのまとめを作成し、会議全体のまとめも最後に作成するようにしてください。:\n\n${transcript}` }
     ],
     temperature: 0.5
   });

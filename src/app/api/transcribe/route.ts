@@ -1,7 +1,6 @@
 export const runtime = 'nodejs';
 
 import { NextResponse } from 'next/server';
-import OpenAI, { toFile } from 'openai';
 import type { NextRequest } from 'next/server';
 
 // POST /api/transcribe
@@ -14,28 +13,41 @@ export async function POST(req: NextRequest) {
     }
     const file = fileEntry as File;
 
-    // Initialize OpenAI client
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY
-    });
+    const apiKey = process.env.DEEPINFRA_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json({ error: 'DEEPINFRA_API_KEY is not configured' }, { status: 500 });
+    }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    // Use toFile helper from openai to prevent Node.js native File quirks
-    const pristineFile = await toFile(buffer, file.name || 'audio.webm', { type: file.type || 'audio/webm' });
 
-    // Send to Whisper
-    const transcription = await openai.audio.transcriptions.create({
-      file: pristineFile,
-      model: 'whisper-1',
-      response_format: 'text'
+    // Construct standard web FormData for DeepInfra
+    const deepinfraFormData = new FormData();
+    const blob = new Blob([buffer], { type: file.type || 'audio/webm' });
+    deepinfraFormData.append('audio', blob, file.name || 'audio.webm');
+    deepinfraFormData.append('language', 'ja');
+
+    const model = 'openai/whisper-large-v3-turbo';
+
+    const res = await fetch(`https://api.deepinfra.com/v1/inference/${model}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: deepinfraFormData
     });
 
-    // Extract text and return
-    const transcriptionData = transcription as { text?: string };
-    const transcript = transcriptionData.text ?? transcriptionData;
+    if (!res.ok) {
+      const errorText = await res.text();
+      return NextResponse.json({ error: `DeepInfra API returned status ${res.status}: ${errorText}` }, { status: res.status });
+    }
+
+    const response = await res.json() as { text: string; inference_status: unknown };
+
+    const transcript = response.text;
     return NextResponse.json({ transcript });
   } catch (err: unknown) {
-    console.error('Transcription error', err);
+    console.error('[Transcribe API] Error during transcription:', err);
     return NextResponse.json({ error: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 }
+
