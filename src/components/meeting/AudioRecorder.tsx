@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import dynamic from 'next/dynamic';
-const Button = dynamic(() => import('@/components/ui/button').then(mod => ({ default: mod.Button })), { ssr: false });
-const MicIcon = dynamic(() => import('lucide-react').then(mod => ({ default: mod.Mic })), { ssr: false });
-const StopCircleIcon = dynamic(() => import('lucide-react').then(mod => ({ default: mod.StopCircle })), { ssr: false });
-const TimerDisplay = dynamic(() => import('@/components/common/TimerDisplay').then(mod => ({ default: mod.TimerDisplay })), { ssr: false });
-const RecordingWaveform = dynamic(() => import('@/components/common/RecordingWaveform').then(mod => ({ default: mod.RecordingWaveform })), { ssr: false });
+import { Button } from '@/components/ui/button';
+import { Mic as MicIcon, StopCircle as StopCircleIcon } from 'lucide-react';
+import { TimerDisplay } from '@/components/common/TimerDisplay';
+import { RecordingWaveform } from '@/components/common/RecordingWaveform';
 import { useUserRecorder } from '@/components/recording/useUserRecorder';
 import { useTranscription } from '@/components/recording/useTranscription';
 import { useSummarization } from '@/components/recording/useSummarization';
@@ -57,22 +55,24 @@ export const AudioRecorder: React.FC = () => {
           seconds={recordingTime}
           normalClassName="text-lg font-mono"
         />
-        <Button
-          onClick={handleToggle}
-          className={isRecording ? 'bg-red-500 hover:bg-red-600' : ''}
-        >
-          {isRecording ? (
-            <>
-              <StopCircleIcon className="mr-2 h-5 w-5" />
-              Stop Recording
-            </>
-          ) : (
-            <>
-              <MicIcon className="mr-2 h-5 w-5" />
-              Start Recording
-            </>
-          )}
-        </Button>
+        {status !== 'stopped' && (
+          <Button
+            onClick={handleToggle}
+            className={isRecording ? 'bg-red-500 hover:bg-red-600' : ''}
+          >
+            {isRecording ? (
+              <>
+                <StopCircleIcon className="mr-2 h-5 w-5" />
+                Stop Recording
+              </>
+            ) : (
+              <>
+                <MicIcon className="mr-2 h-5 w-5" />
+                Start Recording
+              </>
+            )}
+          </Button>
+        )}
         {mediaUrl && !isRecording && (
           <audio controls src={mediaUrl} className="mt-4" />
         )}
