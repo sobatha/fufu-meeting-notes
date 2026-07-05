@@ -7,7 +7,7 @@ import { SharedNotesTab } from '@/components/meeting/SharedNotesTab';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AuthGuard } from '@/components/auth/AuthGuard';
 import { TimerDisplay } from '@/components/common/TimerDisplay';
-import { Clock } from 'lucide-react';
+import { Clock, Settings } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 interface DiscussionItem {
@@ -52,6 +52,7 @@ export default function MeetingWorkspacePage() {
         <MeetingHeader
           title={`${new Date().getFullYear()}年${new Date().getMonth() + 1}月ミーティング`}
           onBack={() => router.push('/management')}
+          backIcon={<Settings className="h-5 w-5" />}
         />
 
         <main className="container mx-auto px-4 py-8">

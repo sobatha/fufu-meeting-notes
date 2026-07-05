@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { AuthGuard } from '@/components/auth/AuthGuard';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Play } from 'lucide-react';
 import { MeetingHeader } from '@/components/meeting/MeetingHeader';
 import { useRouter } from 'next/navigation';
@@ -17,12 +15,13 @@ interface DiscussionItem {
 
 export default function Dashboard() {
   const router = useRouter();
-  const [isMeetingLoading, setIsMeetingLoading] = useState(false);
   const [items, setItems] = useState<DiscussionItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchItems = async () => {
       try {
+        setIsLoading(true);
         const res = await fetch('/api/discussion-items');
         if (res.ok) {
           const data = await res.json();
@@ -36,6 +35,8 @@ export default function Dashboard() {
         }
       } catch (error) {
         console.error('Error fetching items:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -47,24 +48,13 @@ export default function Dashboard() {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <MeetingHeader
           title="夫婦ミーティング"
+          onBack={() => router.push('/meeting')}
+          backIcon={<Play className="h-5 w-5" />}
         />
 
         <main className="container mx-auto px-4 py-8">
           <div className="grid grid-cols-1 gap-8">
-            <Card className="lg:col-span-2">
-              <CardContent>
-                <div className="flex justify-center">
-                  <Button size="lg" onClick={() => {
-                    router.push('/meeting');
-                    setIsMeetingLoading(true);
-                    }} disabled={isMeetingLoading}>
-                    ミーティングを開始
-                    <Play className="ml-2 h-4 w-4" />
-                  </Button>
-                </div> 
-              </CardContent>
-            </Card>
-            <ItemsManager items={items} onAdd={() => {}} onEdit={() => {}} />
+            <ItemsManager items={items} onAdd={() => {}} onEdit={() => {}} isLoading={isLoading} />
             <MinutesHistory minutes={[]} onView={() => {}} onPDF={() => {}} onViewAll={() => {}} />
           </div>
         </main>
