@@ -43,6 +43,33 @@ export default function Dashboard() {
     fetchItems();
   }, []);
 
+  const handleEditItem = async (id: string, newName: string) => {
+    try {
+      const res = await fetch('/api/discussion-items', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id, name: newName }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          setItems(prev => prev.map(item => item.id === id ? { ...item, name: newName } : item));
+        } else {
+          console.error('Failed to update item:', data.error);
+          alert(`更新に失敗しました: ${data.error}`);
+        }
+      } else {
+        console.error('Failed to update item:', res.statusText);
+        alert(`更新に失敗しました: ${res.statusText}`);
+      }
+    } catch (error) {
+      console.error('Error updating item:', error);
+      alert('エラーが発生しました。もう一度お試しください。');
+    }
+  };
+
   return (
     <AuthGuard>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -54,7 +81,7 @@ export default function Dashboard() {
 
         <main className="container mx-auto px-4 py-8">
           <div className="grid grid-cols-1 gap-8">
-            <ItemsManager items={items} onAdd={() => {}} onEdit={() => {}} isLoading={isLoading} />
+            <ItemsManager items={items} onAdd={() => {}} onEdit={handleEditItem} isLoading={isLoading} />
             <MinutesHistory minutes={[]} onView={() => {}} onPDF={() => {}} onViewAll={() => {}} />
           </div>
         </main>
